@@ -69,16 +69,16 @@ public class HomeActivity extends AppCompatActivity {
                 Toast.makeText(this, "Tính năng giỏ hàng đang phát triển", Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == ph61167.dunghn.duan.R.id.nav_orders) {
-                // TODO: Chuyển đến trang đơn hàng
-                Toast.makeText(this, "Tính năng đơn hàng đang phát triển", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, ph61167.dunghn.duan.ui.orders.OrdersActivity.class);
+                startActivity(intent);
                 return true;
             } else if (itemId == ph61167.dunghn.duan.R.id.nav_wallet) {
                 // TODO: Chuyển đến trang ví
                 Toast.makeText(this, "Tính năng ví đang phát triển", Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == ph61167.dunghn.duan.R.id.nav_account) {
-                // TODO: Chuyển đến trang tài khoản
-                Toast.makeText(this, "Tính năng tài khoản đang phát triển", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, ph61167.dunghn.duan.ui.users.UsersActivity.class);
+                startActivity(intent);
                 return true;
             }
             return false;
