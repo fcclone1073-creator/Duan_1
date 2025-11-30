@@ -19,9 +19,11 @@ import ph61167.dunghn.duan.databinding.ItemCartBinding;
 public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder> {
 
     private final List<CartData.Item> items = new ArrayList<>();
+    private final java.util.HashSet<CartData.Item> selected = new java.util.HashSet<>();
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
     private OnQuantityChangeListener quantityChangeListener;
     private OnDeleteClickListener deleteClickListener;
+    private OnSelectionChangeListener selectionChangeListener;
 
     public interface OnQuantityChangeListener {
         void onChange(CartData.Item item, int newQuantity);
@@ -29,6 +31,10 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
     public interface OnDeleteClickListener {
         void onDelete(CartData.Item item);
+    }
+
+    public interface OnSelectionChangeListener {
+        void onChange();
     }
 
     public void setOnQuantityChangeListener(OnQuantityChangeListener l) {
@@ -39,13 +45,35 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         this.deleteClickListener = l;
     }
 
+    public void setOnSelectionChangeListener(OnSelectionChangeListener l) {
+        this.selectionChangeListener = l;
+    }
+
     public void submitList(List<CartData.Item> data) {
         items.clear();
+        selected.clear();
         if (data != null) items.addAll(data);
         notifyDataSetChanged();
     }
 
     public List<CartData.Item> getItems() { return items; }
+
+    public List<CartData.Item> getSelectedItems() {
+        List<CartData.Item> res = new ArrayList<>();
+        for (CartData.Item it : items) if (selected.contains(it)) res.add(it);
+        return res;
+    }
+
+    public void selectAll() {
+        selected.clear();
+        selected.addAll(items);
+        notifyDataSetChanged();
+    }
+
+    public void clearSelection() {
+        selected.clear();
+        notifyDataSetChanged();
+    }
 
     @NonNull
     @Override
@@ -57,7 +85,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull CartViewHolder holder, int position) {
-        holder.bind(items.get(position), currencyFormat, quantityChangeListener, deleteClickListener);
+        holder.bind(items.get(position), currencyFormat, quantityChangeListener, deleteClickListener, selected, selectionChangeListener);
     }
 
     @Override
@@ -71,7 +99,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
             this.binding = binding;
         }
 
-        void bind(CartData.Item item, NumberFormat fmt, OnQuantityChangeListener l, OnDeleteClickListener d) {
+        void bind(CartData.Item item, NumberFormat fmt, OnQuantityChangeListener l, OnDeleteClickListener d, java.util.Set<CartData.Item> selectedSet, OnSelectionChangeListener selListener) {
             String name = item.getProduct() != null ? item.getProduct().getName() : "";
             String image = item.getProduct() != null ? item.getProduct().getImage() : null;
             binding.tvProductName.setText(name);
@@ -82,6 +110,13 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
                     .placeholder(ph61167.dunghn.duan.R.drawable.img)
                     .error(ph61167.dunghn.duan.R.drawable.img)
                     .into(binding.ivProduct);
+
+            binding.cbSelect.setOnCheckedChangeListener(null);
+            binding.cbSelect.setChecked(selectedSet.contains(item));
+            binding.cbSelect.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) selectedSet.add(item); else selectedSet.remove(item);
+                if (selListener != null) selListener.onChange();
+            });
 
             binding.btnDecrease.setOnClickListener(v -> {
                 int q = Math.max(1, safeInt(binding.tvQuantity.getText().toString()) - 1);

@@ -37,6 +37,7 @@ public class CartActivity extends AppCompatActivity {
 
         binding.btnBack.setOnClickListener(v -> finish());
         setupRecyclerView();
+        setupSelectAll();
         fetchCart();
 
         binding.btnCheckout.setOnClickListener(v -> {
@@ -55,6 +56,7 @@ public class CartActivity extends AppCompatActivity {
             updateTotal();
         });
         cartAdapter.setOnDeleteClickListener(item -> deleteItem(item));
+        cartAdapter.setOnSelectionChangeListener(this::updateTotal);
     }
 
     private void fetchCart() {
@@ -77,7 +79,8 @@ public class CartActivity extends AppCompatActivity {
                 if (body.isSuccess() && body.getData() != null) {
                     CartData data = body.getData();
                     cartAdapter.submitList(data.getItems());
-                    binding.tvTotalPrice.setText(currencyFormat.format(data.getTotalAmount()));
+                    binding.cbSelectAll.setChecked(false);
+                    updateTotal();
                     boolean isEmpty = data.getItems() == null || data.getItems().isEmpty();
                     binding.rvCart.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
                 } else {
@@ -95,10 +98,21 @@ public class CartActivity extends AppCompatActivity {
 
     private void updateTotal() {
         double total = 0;
-        for (CartData.Item it : cartAdapter.getItems()) {
+        for (CartData.Item it : cartAdapter.getSelectedItems()) {
             total += it.getUnitPrice() * it.getQuantity();
         }
         binding.tvTotalPrice.setText(currencyFormat.format(total));
+    }
+
+    private void setupSelectAll() {
+        binding.cbSelectAll.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                cartAdapter.selectAll();
+            } else {
+                cartAdapter.clearSelection();
+            }
+            updateTotal();
+        });
     }
 
     private void itemQuantityUpdate(CartData.Item target, int newQuantity) {

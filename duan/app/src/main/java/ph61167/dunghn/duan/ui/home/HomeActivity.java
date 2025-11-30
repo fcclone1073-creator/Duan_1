@@ -53,8 +53,43 @@ public class HomeActivity extends AppCompatActivity {
         binding.tvUserGreeting.setText(greeting);
 
         binding.ivLogout.setOnClickListener(v -> {
-            sessionManager.clearSession();
-            navigateToLogin();
+            androidx.appcompat.widget.PopupMenu popup = new androidx.appcompat.widget.PopupMenu(this, binding.ivLogout);
+            android.view.Menu m = popup.getMenu();
+            final int ID_PROFILE = 1;
+            final int ID_SETTINGS = 2;
+            final int ID_TOP_PRODUCTS = 3;
+            final int ID_TOP_CUSTOMERS = 4;
+            final int ID_LOGOUT = 5;
+            m.add(0, ID_PROFILE, 0, "Tài khoản cá nhân");
+            m.add(0, ID_SETTINGS, 1, "Cài đặt");
+            m.add(0, ID_TOP_PRODUCTS, 2, "Báo cáo Top Sản phẩm");
+            m.add(0, ID_TOP_CUSTOMERS, 3, "Báo cáo Top Khách hàng");
+            m.add(0, ID_LOGOUT, 4, "Đăng xuất");
+            popup.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+                if (id == ID_PROFILE) {
+                    Intent i = new Intent(this, ph61167.dunghn.duan.ui.users.UsersActivity.class);
+                    startActivity(i);
+                    return true;
+                } else if (id == ID_SETTINGS) {
+                    Toast.makeText(this, "Tính năng cài đặt đang phát triển", Toast.LENGTH_SHORT).show();
+                    return true;
+                } else if (id == ID_TOP_PRODUCTS) {
+                    Intent i = new Intent(this, ph61167.dunghn.duan.ui.top.TopProductsActivity.class);
+                    startActivity(i);
+                    return true;
+                } else if (id == ID_TOP_CUSTOMERS) {
+                    Intent i = new Intent(this, ph61167.dunghn.duan.ui.top.TopCustomersActivity.class);
+                    startActivity(i);
+                    return true;
+                } else if (id == ID_LOGOUT) {
+                    sessionManager.clearSession();
+                    navigateToLogin();
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
         });
 
         binding.ivCart.setOnClickListener(v -> {

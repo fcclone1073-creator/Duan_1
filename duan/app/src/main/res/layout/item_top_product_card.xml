@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:strokeColor="@color/gray_border"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/iv_image"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/img" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/tv_rank"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="#1"
+                app:chipBackgroundColor="@color/light_gray"
+                app:chipStrokeColor="@color/gray_border"
+                app:chipStrokeWidth="1dp"
+                android:textColor="@color/purple_button" />
+
+            <TextView
+                android:id="@+id/tv_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="iPhone 7plus"
+                android:textStyle="bold"
+                android:textColor="@color/dark_gray"
+                android:textSize="16sp"
+                android:maxLines="2"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="500,000"
+            android:textColor="@color/blue_text"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="6dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/tv_total_qty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SL bán: 4"
+                app:chipBackgroundColor="@color/light_gray"
+                app:chipStrokeColor="@color/gray_border"
+                app:chipStrokeWidth="1dp"
+                android:textColor="@color/dark_gray" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/tv_order_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Số lần bán: 4"
+                app:chipBackgroundColor="@color/light_gray"
+                app:chipStrokeColor="@color/gray_border"
+                app:chipStrokeWidth="1dp"
+                android:textColor="@color/dark_gray" />
+        </LinearLayout>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/tv_revenue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Doanh thu: 2,000,000"
+            app:chipBackgroundColor="@color/light_gray"
+            app:chipStrokeColor="@color/gray_border"
+            app:chipStrokeWidth="1dp"
+            android:textColor="@color/dark_gray"
+            android:layout_marginTop="4dp" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
