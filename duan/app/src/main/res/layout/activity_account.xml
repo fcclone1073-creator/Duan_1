@@ -132,6 +132,7 @@
 
                     <!-- Edit Profile -->
                     <LinearLayout
+                        android:id="@+id/ll_edit_profile"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:orientation="horizontal"
@@ -171,6 +172,7 @@
 
                     <!-- Orders -->
                     <LinearLayout
+                        android:id="@+id/ll_my_orders"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:orientation="horizontal"
@@ -210,6 +212,7 @@
 
                     <!-- Favorites -->
                     <LinearLayout
+                        android:id="@+id/ll_favorites"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:orientation="horizontal"
@@ -249,6 +252,7 @@
 
                     <!-- Settings -->
                     <LinearLayout
+                        android:id="@+id/ll_settings"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:orientation="horizontal"

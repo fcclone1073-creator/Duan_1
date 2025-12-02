@@ -84,7 +84,7 @@ public interface ApiService {
     Call<BaseResponse<CartResponse>> updateCartItem(
             @Path("userId") String userId,
             @Path("productId") String productId,
-            @Body int request
+            @Body UpdateCartItemRequest request
     );
 
     @DELETE("cart/user/{userId}/item/{productId}")

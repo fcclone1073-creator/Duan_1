@@ -1,6 +1,8 @@
 package ph61167.dunghn.duan.ui.home;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,7 +14,15 @@ import java.text.NumberFormat;
 import java.util.Locale;
 
 import ph61167.dunghn.duan.R;
+import ph61167.dunghn.duan.data.local.SessionManager;
+import ph61167.dunghn.duan.data.remote.ApiClient;
+import ph61167.dunghn.duan.data.remote.response.BaseResponse;
+import ph61167.dunghn.duan.data.remote.response.CartResponse;
 import ph61167.dunghn.duan.databinding.ActivityProductDetailBinding;
+import ph61167.dunghn.duan.ui.cart.CartActivity;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProductDetailActivity extends AppCompatActivity {
 
@@ -28,12 +38,15 @@ public class ProductDetailActivity extends AppCompatActivity {
     private double productRating;
     private int productSold;
     private int quantity = 1;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityProductDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        sessionManager = new SessionManager(this);
 
         // Get data from intent
         getIntentData();
@@ -65,7 +78,9 @@ public class ProductDetailActivity extends AppCompatActivity {
         binding.tvTotalPrice.setText(currencyFormat.format(productPrice * quantity));
         
         // Set product description
-        binding.tvProductDescription.setText(productDescription);
+        if (productDescription != null && !productDescription.isEmpty()) {
+            binding.tvProductDescription.setText(productDescription);
+        }
         
         // Load product image
         if (productImage != null && !productImage.isEmpty()) {
@@ -82,7 +97,8 @@ public class ProductDetailActivity extends AppCompatActivity {
         binding.tvRating.setText(String.valueOf(productRating));
         
         // Set reviews count
-        binding.tvReviews.setText("(" + formatNumber(productSold / 10) + " đánh giá)");
+        int reviewCount = productSold / 10;
+        binding.tvReviews.setText("(" + formatNumber(reviewCount) + " đánh giá)");
         
         // Set sold count
         binding.tvSold.setText("Đã bán " + formatSoldCount(productSold));
@@ -94,6 +110,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         } else {
             binding.tvStock.setText("Hết hàng");
             binding.tvStock.setTextColor(getResources().getColor(R.color.error, null));
+            binding.btnAddToCart.setEnabled(false);
         }
         
         // Set quantity
@@ -107,13 +124,16 @@ public class ProductDetailActivity extends AppCompatActivity {
         // Share button
         if (binding.btnShare != null) {
             binding.btnShare.setOnClickListener(v -> {
-                Toast.makeText(this, "Chia sẻ sản phẩm", Toast.LENGTH_SHORT).show();
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, "Xem sản phẩm: " + productName + " - " + currencyFormat.format(productPrice));
+                startActivity(Intent.createChooser(shareIntent, "Chia sẻ sản phẩm"));
             });
         }
         
         // Favorite button
         binding.btnFavorite.setOnClickListener(v -> {
-            Toast.makeText(this, "Đã thêm vào yêu thích", Toast.LENGTH_SHORT).show();
+            toggleFavorite();
         });
         
         // Decrease quantity
@@ -137,8 +157,7 @@ public class ProductDetailActivity extends AppCompatActivity {
         // Add to cart button
         binding.btnAddToCart.setOnClickListener(v -> {
             if (productStock > 0) {
-                Toast.makeText(this, "Đã thêm " + quantity + " " + productName + " vào giỏ hàng", Toast.LENGTH_SHORT).show();
-                // TODO: Call API to add to cart
+                addToCart();
             } else {
                 Toast.makeText(this, "Sản phẩm đã hết hàng", Toast.LENGTH_SHORT).show();
             }
@@ -150,6 +169,130 @@ public class ProductDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Xem đánh giá sản phẩm", Toast.LENGTH_SHORT).show();
             });
         }
+    }
+
+    private void addToCart() {
+        String userId = sessionManager.getUserId();
+        if (userId == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ApiClient.getService()
+                .addToCart(userId, new ph61167.dunghn.duan.data.remote.ApiService.AddToCartRequest(productId, quantity))
+                .enqueue(new Callback<BaseResponse<CartResponse>>() {
+                    @Override
+                    public void onResponse(
+                            Call<BaseResponse<CartResponse>> call,
+                            Response<BaseResponse<CartResponse>> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            BaseResponse<CartResponse> body = response.body();
+                            if (body.isSuccess()) {
+                                Toast.makeText(ProductDetailActivity.this,
+                                        "Đã thêm " + quantity + " " + productName + " vào giỏ hàng",
+                                        Toast.LENGTH_SHORT).show();
+                                
+                                // Option to go to cart
+                                android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(ProductDetailActivity.this);
+                                builder.setTitle("Thêm vào giỏ hàng thành công");
+                                builder.setMessage("Bạn có muốn xem giỏ hàng không?");
+                                builder.setPositiveButton("Xem giỏ hàng", (dialog, which) -> {
+                                    startActivity(new Intent(ProductDetailActivity.this, CartActivity.class));
+                                });
+                                builder.setNegativeButton("Tiếp tục mua sắm", (dialog, which) -> {
+                                    dialog.dismiss();
+                                });
+                                builder.show();
+                            } else {
+                                Toast.makeText(ProductDetailActivity.this,
+                                        body.getMessage(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<BaseResponse<CartResponse>> call, Throwable t) {
+                        Toast.makeText(ProductDetailActivity.this,
+                                "Lỗi khi thêm vào giỏ hàng: " + t.getMessage(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void toggleFavorite() {
+        String userId = sessionManager.getUserId();
+        if (userId == null) {
+            Toast.makeText(this, "Vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ph61167.dunghn.duan.data.remote.request.FavoriteRequest request = 
+                new ph61167.dunghn.duan.data.remote.request.FavoriteRequest(userId, productId);
+
+        ApiClient.getService()
+                .addFavorite(request)
+                .enqueue(new Callback<BaseResponse<ph61167.dunghn.duan.data.model.Favorite>>() {
+                    @Override
+                    public void onResponse(
+                            Call<BaseResponse<ph61167.dunghn.duan.data.model.Favorite>> call,
+                            Response<BaseResponse<ph61167.dunghn.duan.data.model.Favorite>> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            BaseResponse<ph61167.dunghn.duan.data.model.Favorite> body = response.body();
+                            if (body.isSuccess()) {
+                                binding.btnFavorite.setImageResource(android.R.drawable.btn_star_big_on);
+                                Toast.makeText(ProductDetailActivity.this,
+                                        "Đã thêm vào yêu thích",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                // Try to remove if already exists
+                                removeFavorite();
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<BaseResponse<ph61167.dunghn.duan.data.model.Favorite>> call,
+                            Throwable t
+                    ) {
+                        Toast.makeText(ProductDetailActivity.this,
+                                "Lỗi khi thêm yêu thích",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void removeFavorite() {
+        String userId = sessionManager.getUserId();
+        if (userId == null) return;
+
+        ApiClient.getService()
+                .removeFavorite(userId, productId)
+                .enqueue(new Callback<BaseResponse<ph61167.dunghn.duan.data.model.Favorite>>() {
+                    @Override
+                    public void onResponse(
+                            Call<BaseResponse<ph61167.dunghn.duan.data.model.Favorite>> call,
+                            Response<BaseResponse<ph61167.dunghn.duan.data.model.Favorite>> response
+                    ) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            binding.btnFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+                            Toast.makeText(ProductDetailActivity.this,
+                                    "Đã xóa khỏi yêu thích",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<BaseResponse<ph61167.dunghn.duan.data.model.Favorite>> call,
+                            Throwable t
+                    ) {
+                        // Ignore
+                    }
+                });
     }
 
     private void updateQuantityUI() {
@@ -171,4 +314,3 @@ public class ProductDetailActivity extends AppCompatActivity {
         return String.valueOf(count);
     }
 }
-

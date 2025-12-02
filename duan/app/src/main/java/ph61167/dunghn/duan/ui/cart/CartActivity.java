@@ -10,11 +10,15 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 import ph61167.dunghn.duan.data.local.SessionManager;
 import ph61167.dunghn.duan.data.remote.ApiClient;
 import ph61167.dunghn.duan.data.remote.response.BaseResponse;
 import ph61167.dunghn.duan.data.remote.response.CartResponse;
 import ph61167.dunghn.duan.databinding.ActivityCartBinding;
+import ph61167.dunghn.duan.ui.checkout.CheckoutActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,6 +28,7 @@ public class CartActivity extends AppCompatActivity {
     private ActivityCartBinding binding;
     private SessionManager sessionManager;
     private CartAdapter cartAdapter;
+    private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,8 +61,9 @@ public class CartActivity extends AppCompatActivity {
                 Toast.makeText(this, "Giỏ hàng trống", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // TODO: Navigate to checkout
-            Toast.makeText(this, "Tính năng thanh toán đang phát triển", Toast.LENGTH_SHORT).show();
+            // Navigate to checkout
+            Intent intent = new Intent(this, CheckoutActivity.class);
+            startActivity(intent);
         });
     }
 
@@ -81,6 +87,7 @@ public class CartActivity extends AppCompatActivity {
                     ) {
                         showLoading(false);
                         if (!response.isSuccessful() || response.body() == null) {
+                            showEmptyState(true);
                             Toast.makeText(CartActivity.this,
                                     "Không thể tải giỏ hàng",
                                     Toast.LENGTH_SHORT).show();
@@ -90,17 +97,26 @@ public class CartActivity extends AppCompatActivity {
                         BaseResponse<CartResponse> body = response.body();
                         if (body.isSuccess() && body.getData() != null) {
                             CartResponse cartData = body.getData();
-                            cartAdapter.submitList(cartData.getItems());
-                            updateTotalPrice(cartData.getTotalAmount());
+                            if (cartData.getItems() != null && !cartData.getItems().isEmpty()) {
+                                cartAdapter.submitList(cartData.getItems());
+                                updateTotalPrice(cartData.getTotalAmount());
+                                showEmptyState(false);
+                            } else {
+                                cartAdapter.submitList(java.util.Collections.emptyList());
+                                updateTotalPrice(0);
+                                showEmptyState(true);
+                            }
                         } else {
                             cartAdapter.submitList(java.util.Collections.emptyList());
                             updateTotalPrice(0);
+                            showEmptyState(true);
                         }
                     }
 
                     @Override
                     public void onFailure(Call<BaseResponse<CartResponse>> call, Throwable t) {
                         showLoading(false);
+                        showEmptyState(true);
                         Log.e("CartActivity", "Error fetching cart: " + t.getMessage(), t);
                         Toast.makeText(CartActivity.this,
                                 "Lỗi kết nối: " + t.getMessage(),
@@ -127,6 +143,9 @@ public class CartActivity extends AppCompatActivity {
                                 CartResponse cartData = body.getData();
                                 cartAdapter.submitList(cartData.getItems());
                                 updateTotalPrice(cartData.getTotalAmount());
+                                if (cartData.getItems() == null || cartData.getItems().isEmpty()) {
+                                    showEmptyState(true);
+                                }
                                 Toast.makeText(CartActivity.this,
                                         "Đã xóa sản phẩm",
                                         Toast.LENGTH_SHORT).show();
@@ -140,6 +159,7 @@ public class CartActivity extends AppCompatActivity {
                         Toast.makeText(CartActivity.this,
                                 "Lỗi khi xóa sản phẩm",
                                 Toast.LENGTH_SHORT).show();
+                        fetchCart(); // Refresh on error
                     }
                 });
     }
@@ -149,7 +169,7 @@ public class CartActivity extends AppCompatActivity {
         if (userId == null) return;
 
         ApiClient.getService()
-                .updateCartItem(userId, productId, newQuantity)
+                .updateCartItem(userId, productId, new ph61167.dunghn.duan.data.remote.ApiService.UpdateCartItemRequest(newQuantity))
                 .enqueue(new Callback<BaseResponse<CartResponse>>() {
                     @Override
                     public void onResponse(
@@ -163,6 +183,8 @@ public class CartActivity extends AppCompatActivity {
                                 cartAdapter.submitList(cartData.getItems());
                                 updateTotalPrice(cartData.getTotalAmount());
                             }
+                        } else {
+                            fetchCart(); // Refresh on error
                         }
                     }
 
@@ -177,15 +199,28 @@ public class CartActivity extends AppCompatActivity {
     }
 
     private void updateTotalPrice(double totalAmount) {
-        binding.tvTotalPrice.setText(String.format("%,.0f VNĐ", totalAmount));
+        binding.tvTotalPrice.setText(currencyFormat.format(totalAmount));
+        binding.tvSubtotal.setText(currencyFormat.format(totalAmount));
     }
 
     private void showLoading(boolean isLoading) {
-        // Loading state - có thể thêm progress bar sau
         if (isLoading) {
             binding.rvCart.setVisibility(View.INVISIBLE);
+            binding.emptyState.setVisibility(View.GONE);
         } else {
             binding.rvCart.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void showEmptyState(boolean isEmpty) {
+        if (isEmpty) {
+            binding.emptyState.setVisibility(View.VISIBLE);
+            binding.rvCart.setVisibility(View.GONE);
+            binding.btnCheckout.setEnabled(false);
+        } else {
+            binding.emptyState.setVisibility(View.GONE);
+            binding.rvCart.setVisibility(View.VISIBLE);
+            binding.btnCheckout.setEnabled(true);
         }
     }
 
