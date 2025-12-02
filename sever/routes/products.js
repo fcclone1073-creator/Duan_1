@@ -9,13 +9,98 @@ const buildResponse = (success, message, data = null) => ({
   data
 });
 
-// Danh sách sản phẩm
+// Danh sách sản phẩm với tìm kiếm và lọc
 router.get('/', async (req, res) => {
   try {
-    const products = await Product.find()
+    const { 
+      search,           // Tìm kiếm theo tên
+      category,         // Lọc theo danh mục
+      minPrice,         // Giá tối thiểu
+      maxPrice,         // Giá tối đa
+      inStock,          // Còn hàng (true/false)
+      sortBy,           // Sắp xếp: price_asc, price_desc, name_asc, name_desc, newest
+      page = 1,         // Trang hiện tại
+      limit = 20        // Số lượng mỗi trang
+    } = req.query;
+
+    // Xây dựng query
+    const query = {};
+
+    // Tìm kiếm theo tên
+    if (search) {
+      query.name = { $regex: search, $options: 'i' };
+    }
+
+    // Lọc theo danh mục
+    if (category) {
+      query.category = category;
+    }
+
+    // Lọc theo giá
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    // Lọc theo tồn kho
+    if (inStock === 'true') {
+      query.stock = { $gt: 0 };
+    } else if (inStock === 'false') {
+      query.stock = { $lte: 0 };
+    }
+
+    // Xây dựng sort
+    let sort = { createdAt: -1 }; // Mặc định sắp xếp mới nhất
+    if (sortBy) {
+      switch (sortBy) {
+        case 'price_asc':
+          sort = { price: 1 };
+          break;
+        case 'price_desc':
+          sort = { price: -1 };
+          break;
+        case 'name_asc':
+          sort = { name: 1 };
+          break;
+        case 'name_desc':
+          sort = { name: -1 };
+          break;
+        case 'newest':
+          sort = { createdAt: -1 };
+          break;
+        case 'oldest':
+          sort = { createdAt: 1 };
+          break;
+      }
+    }
+
+    // Phân trang
+    const skip = (Number(page) - 1) * Number(limit);
+    const total = await Product.countDocuments(query);
+    const products = await Product.find(query)
       .populate('category', 'name')
-      .sort({ createdAt: -1 });
-    res.json(buildResponse(true, 'Danh sách sản phẩm', products));
+      .sort(sort)
+      .skip(skip)
+      .limit(Number(limit));
+
+    res.json(buildResponse(true, 'Danh sách sản phẩm', {
+      products,
+      pagination: {
+        currentPage: Number(page),
+        totalPages: Math.ceil(total / Number(limit)),
+        totalItems: total,
+        itemsPerPage: Number(limit)
+      },
+      filters: {
+        search: search || null,
+        category: category || null,
+        minPrice: minPrice || null,
+        maxPrice: maxPrice || null,
+        inStock: inStock || null,
+        sortBy: sortBy || 'newest'
+      }
+    }));
   } catch (error) {
     res.status(500).json(buildResponse(false, error.message));
   }

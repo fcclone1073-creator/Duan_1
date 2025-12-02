@@ -36,6 +36,18 @@
             android:name=".MainActivity"
             android:exported="false"
             android:theme="@style/Theme.Duan" />
+        <activity
+            android:name=".ui.cart.CartActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Duan" />
+        <activity
+            android:name=".ui.orders.OrdersActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Duan" />
+        <activity
+            android:name=".ui.account.AccountActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Duan" />
     </application>
 
 </manifest>

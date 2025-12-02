@@ -15,8 +15,10 @@ import ph61167.dunghn.duan.data.local.SessionManager;
 import ph61167.dunghn.duan.data.model.Product;
 import ph61167.dunghn.duan.data.remote.ApiClient;
 import ph61167.dunghn.duan.data.remote.response.BaseResponse;
+import ph61167.dunghn.duan.data.remote.response.ProductsResponse;
 import ph61167.dunghn.duan.databinding.ActivityHomeBinding;
 import ph61167.dunghn.duan.ui.auth.LoginActivity;
+import ph61167.dunghn.duan.ui.cart.CartActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -43,18 +45,31 @@ public class HomeActivity extends AppCompatActivity {
         setupRecyclerView();
         setupHeader();
         setupBottomNavigation();
+        setupClickListeners();
         fetchProducts();
     }
 
     private void setupHeader() {
-        String greeting = sessionManager.getUserName() != null
-                ? "Xin chào, " + sessionManager.getUserName()
+        String userName = sessionManager.getUserName();
+        String greeting = userName != null && !userName.isEmpty()
+                ? "Xin chào, " + userName + "!"
                 : "Xin chào!";
         binding.tvUserGreeting.setText(greeting);
+    }
 
+    private void setupClickListeners() {
         binding.ivLogout.setOnClickListener(v -> {
             sessionManager.clearSession();
             navigateToLogin();
+        });
+
+        binding.ivCart.setOnClickListener(v -> {
+            startActivity(new Intent(this, CartActivity.class));
+        });
+
+        binding.ivFavorite.setOnClickListener(v -> {
+            Toast.makeText(this, "Danh sách yêu thích", Toast.LENGTH_SHORT).show();
+            // TODO: Navigate to WishlistActivity
         });
     }
 
@@ -65,20 +80,16 @@ public class HomeActivity extends AppCompatActivity {
                 // Đã ở trang chủ
                 return true;
             } else if (itemId == ph61167.dunghn.duan.R.id.nav_cart) {
-                // TODO: Chuyển đến trang giỏ hàng
-                Toast.makeText(this, "Tính năng giỏ hàng đang phát triển", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, ph61167.dunghn.duan.ui.cart.CartActivity.class));
                 return true;
             } else if (itemId == ph61167.dunghn.duan.R.id.nav_orders) {
-                // TODO: Chuyển đến trang đơn hàng
-                Toast.makeText(this, "Tính năng đơn hàng đang phát triển", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, ph61167.dunghn.duan.ui.orders.OrdersActivity.class));
                 return true;
             } else if (itemId == ph61167.dunghn.duan.R.id.nav_wallet) {
-                // TODO: Chuyển đến trang ví
                 Toast.makeText(this, "Tính năng ví đang phát triển", Toast.LENGTH_SHORT).show();
                 return true;
             } else if (itemId == ph61167.dunghn.duan.R.id.nav_account) {
-                // TODO: Chuyển đến trang tài khoản
-                Toast.makeText(this, "Tính năng tài khoản đang phát triển", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, ph61167.dunghn.duan.ui.account.AccountActivity.class));
                 return true;
             }
             return false;
@@ -95,11 +106,11 @@ public class HomeActivity extends AppCompatActivity {
         showProductLoading(true);
         ApiClient.getService()
                 .getProducts()
-                .enqueue(new Callback<BaseResponse<List<Product>>>() {
+                .enqueue(new Callback<BaseResponse<ProductsResponse>>() {
                     @Override
                     public void onResponse(
-                            Call<BaseResponse<List<Product>>> call,
-                            Response<BaseResponse<List<Product>>> response
+                            Call<BaseResponse<ProductsResponse>> call,
+                            Response<BaseResponse<ProductsResponse>> response
                     ) {
                         showProductLoading(false);
                         if (!response.isSuccessful() || response.body() == null) {
@@ -109,9 +120,12 @@ public class HomeActivity extends AppCompatActivity {
                             return;
                         }
 
-                        BaseResponse<List<Product>> body = response.body();
-                        if (body.isSuccess()) {
-                            productAdapter.submitList(body.getData());
+                        BaseResponse<ProductsResponse> body = response.body();
+                        if (body.isSuccess() && body.getData() != null) {
+                            List<Product> products = body.getData().getProducts();
+                            if (products != null) {
+                                productAdapter.submitList(products);
+                            }
                         } else {
                             Toast.makeText(HomeActivity.this,
                                     body.getMessage(),
@@ -120,7 +134,7 @@ public class HomeActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<BaseResponse<List<Product>>> call, Throwable t) {
+                    public void onFailure(Call<BaseResponse<ProductsResponse>> call, Throwable t) {
                         showProductLoading(false);
                         Toast.makeText(HomeActivity.this,
                                 "Lỗi kết nối: " + t.getMessage(),
@@ -140,5 +154,11 @@ public class HomeActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-}
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Set home item as selected when returning to this activity
+        binding.bottomNavigation.setSelectedItemId(ph61167.dunghn.duan.R.id.nav_home);
+    }
+}

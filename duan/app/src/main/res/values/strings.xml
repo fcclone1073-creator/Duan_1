@@ -1,47 +1,89 @@
 <resources>
-    <string name="app_name">duan</string>
-    <string name="action_settings">Settings</string>
+    <string name="app_name">Nhóm 5 Shop</string>
+    <string name="action_settings">Cài đặt</string>
     <string name="logout">Đăng xuất</string>
-    <!-- Strings used for fragments for navigation -->
+    
+    <!-- Auth -->
+    <string name="login">Đăng nhập</string>
+    <string name="register">Đăng ký</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="no_account">Bạn chưa có tài khoản?</string>
+    <string name="has_account">Đã có tài khoản?</string>
+    <string name="register_now">Đăng ký ngay</string>
+    <string name="login_now">Đăng nhập ngay</string>
+    
+    <!-- Home -->
+    <string name="hello">Xin chào!</string>
+    <string name="search_products">Tìm kiếm sản phẩm...</string>
+    <string name="featured_brands">Thương hiệu nổi bật</string>
+    <string name="latest_products">Sản phẩm mới nhất</string>
+    <string name="view_all">Xem tất cả</string>
+    <string name="shop_now">Mua ngay</string>
+    
+    <!-- Cart -->
+    <string name="my_cart">Giỏ hàng</string>
+    <string name="empty_cart">Giỏ hàng trống</string>
+    <string name="add_products_to_cart">Hãy thêm sản phẩm vào giỏ hàng</string>
+    <string name="checkout">Thanh toán</string>
+    <string name="subtotal">Tạm tính</string>
+    <string name="shipping">Phí vận chuyển</string>
+    <string name="free_shipping">Miễn phí</string>
+    <string name="total">Tổng cộng</string>
+    <string name="promo_code">Nhập mã giảm giá</string>
+    <string name="apply">Áp dụng</string>
+    
+    <!-- Orders -->
+    <string name="my_orders">Đơn hàng của tôi</string>
+    <string name="no_orders">Chưa có đơn hàng nào</string>
+    <string name="shop_now_message">Hãy mua sắm ngay!</string>
+    <string name="order_status_all">Tất cả</string>
+    <string name="order_status_pending">Chờ xác nhận</string>
+    <string name="order_status_confirmed">Đã xác nhận</string>
+    <string name="order_status_shipping">Đang giao</string>
+    <string name="order_status_delivered">Đã giao</string>
+    <string name="order_status_cancelled">Đã hủy</string>
+    <string name="view_detail">Chi tiết</string>
+    <string name="total_amount">Tổng tiền</string>
+    
+    <!-- Account -->
+    <string name="account">Tài khoản</string>
+    <string name="edit_profile">Chỉnh sửa hồ sơ</string>
+    <string name="my_favorites">Sản phẩm yêu thích</string>
+    <string name="settings">Cài đặt</string>
+    
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_cart">Giỏ hàng</string>
+    <string name="nav_orders">Đơn hàng</string>
+    <string name="nav_wallet">Ví</string>
+    <string name="nav_account">Tài khoản</string>
+    
+    <!-- Product -->
+    <string name="add_to_cart">Thêm vào giỏ</string>
+    <string name="sold">Đã bán</string>
+    <string name="in_stock">Còn hàng</string>
+    <string name="out_of_stock">Hết hàng</string>
+    
+    <!-- Messages -->
+    <string name="loading">Đang tải...</string>
+    <string name="error_connection">Lỗi kết nối</string>
+    <string name="error_loading">Không thể tải dữ liệu</string>
+    <string name="success">Thành công</string>
+    <string name="feature_developing">Tính năng đang phát triển</string>
+    
+    <!-- Fragments -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
-
+    
     <string name="lorem_ipsum">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
         volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
         dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad
-        litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse blandit eleifend
-        diam, vel rutrum tellus vulputate quis. Aliquam eget libero aliquet, imperdiet nisl a,
-        ornare ex. Sed rhoncus est ut libero porta lobortis. Fusce in dictum tellus.\n\n
-        Suspendisse interdum ornare ante. Aliquam nec cursus lorem. Morbi id magna felis. Vivamus
-        egestas, est a condimentum egestas, turpis nisl iaculis ipsum, in dictum tellus dolor sed
-        neque. Morbi tellus erat, dapibus ut sem a, iaculis tincidunt dui. Interdum et malesuada
-        fames ac ante ipsum primis in faucibus. Curabitur et eros porttitor, ultricies urna vitae,
-        molestie nibh. Phasellus at commodo eros, non aliquet metus. Sed maximus nisl nec dolor
-        bibendum, vel congue leo egestas.\n\n
-        Sed interdum tortor nibh, in sagittis risus mollis quis. Curabitur mi odio, condimentum sit
-        amet auctor at, mollis non turpis. Nullam pretium libero vestibulum, finibus orci vel,
-        molestie quam. Fusce blandit tincidunt nulla, quis sollicitudin libero facilisis et. Integer
-        interdum nunc ligula, et fermentum metus hendrerit id. Vestibulum lectus felis, dictum at
-        lacinia sit amet, tristique id quam. Cras eu consequat dui. Suspendisse sodales nunc ligula,
-        in lobortis sem porta sed. Integer id ultrices magna, in luctus elit. Sed a pellentesque
-        est.\n\n
-        Aenean nunc velit, lacinia sed dolor sed, ultrices viverra nulla. Etiam a venenatis nibh.
-        Morbi laoreet, tortor sed facilisis varius, nibh orci rhoncus nulla, id elementum leo dui
-        non lorem. Nam mollis ipsum quis auctor varius. Quisque elementum eu libero sed commodo. In
-        eros nisl, imperdiet vel imperdiet et, scelerisque a mauris. Pellentesque varius ex nunc,
-        quis imperdiet eros placerat ac. Duis finibus orci et est auctor tincidunt. Sed non viverra
-        ipsum. Nunc quis augue egestas, cursus lorem at, molestie sem. Morbi a consectetur ipsum, a
-        placerat diam. Etiam vulputate dignissim convallis. Integer faucibus mauris sit amet finibus
-        convallis.\n\n
-        Phasellus in aliquet mi. Pellentesque habitant morbi tristique senectus et netus et
-        malesuada fames ac turpis egestas. In volutpat arcu ut felis sagittis, in finibus massa
-        gravida. Pellentesque id tellus orci. Integer dictum, lorem sed efficitur ullamcorper,
-        libero justo consectetur ipsum, in mollis nisl ex sed nisl. Donec maximus ullamcorper
-        sodales. Praesent bibendum rhoncus tellus nec feugiat. In a ornare nulla. Donec rhoncus
-        libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
-        vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
+        litora torquent per conubia nostra, per inceptos himenaeos.
     </string>
 </resources>
