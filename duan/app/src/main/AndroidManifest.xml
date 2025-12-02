@@ -48,6 +48,10 @@
             android:name=".ui.account.AccountActivity"
             android:exported="false"
             android:theme="@style/Theme.Duan" />
+        <activity
+            android:name=".ui.home.ProductDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Duan" />
     </application>
 
 </manifest>

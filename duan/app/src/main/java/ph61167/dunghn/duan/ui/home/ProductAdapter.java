@@ -1,5 +1,6 @@
 package ph61167.dunghn.duan.ui.home;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -72,34 +76,67 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         }
 
         void bind(Product product, NumberFormat format, OnProductClickListener listener) {
+            // Set product name
             binding.tvProductName.setText(product.getName());
             
-            // Format price with VND currency
+            // Format and set price
             String priceFormatted = format.format(product.getPrice());
             binding.tvProductPrice.setText(priceFormatted);
             
-            // Set default image (you can use Glide/Picasso to load from URL)
-            binding.ivProduct.setImageResource(R.drawable.img);
-            
-            // Show rating if available (default for now)
-            if (binding.tvRating != null) {
-                binding.tvRating.setText("4.5");
+            // Load image from URL using Glide
+            String imageUrl = product.getImage();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                Glide.with(binding.getRoot().getContext())
+                        .load(imageUrl)
+                        .placeholder(R.drawable.img)
+                        .error(R.drawable.img)
+                        .centerCrop()
+                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .into(binding.ivProduct);
+            } else {
+                binding.ivProduct.setImageResource(R.drawable.img);
             }
             
-            // Show sold count
+            // Set rating if available
+            if (binding.tvRating != null) {
+                Double rating = product.getRating();
+                binding.tvRating.setText(rating != null ? String.valueOf(rating) : "4.5");
+            }
+            
+            // Set sold count
             if (binding.tvSold != null) {
-                binding.tvSold.setText("• Đã bán 0");
+                Integer soldCount = product.getSoldCount();
+                String soldText = soldCount != null ? "Đã bán " + formatSoldCount(soldCount) : "Đã bán 0";
+                binding.tvSold.setText("• " + soldText);
             }
             
             // Handle discount badge visibility
             if (binding.tvDiscount != null) {
-                binding.tvDiscount.setVisibility(View.GONE);
+                Double discount = product.getDiscount();
+                if (discount != null && discount > 0) {
+                    binding.tvDiscount.setVisibility(View.VISIBLE);
+                    binding.tvDiscount.setText("-" + discount.intValue() + "%");
+                } else {
+                    binding.tvDiscount.setVisibility(View.GONE);
+                }
             }
             
             // Click listeners
             binding.getRoot().setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onProductClick(product);
+                } else {
+                    // Open product detail
+                    Intent intent = new Intent(v.getContext(), ProductDetailActivity.class);
+                    intent.putExtra("product_id", product.getId());
+                    intent.putExtra("product_name", product.getName());
+                    intent.putExtra("product_price", product.getPrice());
+                    intent.putExtra("product_image", product.getImage());
+                    intent.putExtra("product_description", product.getDescription());
+                    intent.putExtra("product_stock", product.getStock() != null ? product.getStock() : 0);
+                    intent.putExtra("product_rating", product.getRating() != null ? product.getRating() : 4.5);
+                    intent.putExtra("product_sold", product.getSoldCount() != null ? product.getSoldCount() : 0);
+                    v.getContext().startActivity(intent);
                 }
             });
             
@@ -108,7 +145,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                     if (listener != null) {
                         listener.onAddToCartClick(product);
                     } else {
-                        Toast.makeText(v.getContext(), "Đã thêm vào giỏ hàng", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(v.getContext(), "Đã thêm " + product.getName() + " vào giỏ hàng", Toast.LENGTH_SHORT).show();
                     }
                 });
             }
@@ -122,6 +159,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
                     }
                 });
             }
+        }
+        
+        private String formatSoldCount(int count) {
+            if (count >= 1000) {
+                return String.format(Locale.US, "%.1fk", count / 1000.0);
+            }
+            return String.valueOf(count);
         }
     }
 }
