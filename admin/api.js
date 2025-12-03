@@ -48,15 +48,28 @@ async function apiRequest(endpoint, options = {}) {
 
     try {
         const response = await fetch(url, config);
+        
+        // Check if response is ok
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'Lỗi kết nối server' }));
+            throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
 
-        if (!response.ok || !data.success) {
+        if (!data.success) {
             throw new Error(data.message || 'Có lỗi xảy ra');
         }
 
         return data;
     } catch (error) {
         console.error('API Error:', error);
+        
+        // Handle network errors
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            throw new Error('Không thể kết nối đến server. Vui lòng kiểm tra:\n1. Backend server đang chạy tại http://localhost:3000\n2. Không có firewall chặn kết nối\n3. CORS đã được cấu hình đúng');
+        }
+        
         throw error;
     }
 }

@@ -42,8 +42,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error('Bạn không có quyền truy cập. Chỉ admin mới được đăng nhập.');
             }
         } catch (error) {
-            errorMessage.textContent = error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.';
+            let errorText = error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.';
+            
+            // Hiển thị lỗi chi tiết hơn
+            if (error.message.includes('Không thể kết nối đến server')) {
+                errorText = '❌ Không thể kết nối đến server!\n\nVui lòng:\n1. Kiểm tra backend server đang chạy tại http://localhost:3000\n2. Chạy lệnh: cd sever && npm start\n3. Đảm bảo MongoDB đang chạy';
+            }
+            
+            errorMessage.textContent = errorText;
             errorMessage.style.display = 'block';
+            errorMessage.style.whiteSpace = 'pre-line'; // Cho phép xuống dòng
         } finally {
             loginBtn.disabled = false;
             loginBtn.querySelector('.btn-text').style.display = 'inline';
