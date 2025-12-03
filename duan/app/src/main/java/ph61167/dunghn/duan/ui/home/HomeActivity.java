@@ -29,6 +29,8 @@ public class HomeActivity extends AppCompatActivity {
     private ActivityHomeBinding binding;
     private SessionManager sessionManager;
     private ProductAdapter productAdapter;
+    private java.util.List<Product> allProducts = new java.util.ArrayList<>();
+    private java.util.List<String> categories = new java.util.ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,7 +49,9 @@ public class HomeActivity extends AppCompatActivity {
         setupHeader();
         setupBottomNavigation();
         setupClickListeners();
+        setupSearchAndFilter();
         fetchProducts();
+        fetchCategories();
     }
 
     private void setupHeader() {
@@ -263,6 +267,7 @@ public class HomeActivity extends AppCompatActivity {
                         if (body.isSuccess() && body.getData() != null) {
                             java.util.List<Product> products = body.getData().getProducts();
                             if (products != null) {
+                                allProducts = products;
                                 productAdapter.submitList(products);
                             }
                         } else {
@@ -285,6 +290,80 @@ public class HomeActivity extends AppCompatActivity {
     private void showProductLoading(boolean isLoading) {
         binding.progressProducts.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         binding.rvProducts.setVisibility(isLoading ? View.INVISIBLE : View.VISIBLE);
+    }
+
+    private void setupSearchAndFilter() {
+        // Search functionality
+        if (binding.etSearch != null) {
+            binding.etSearch.setOnEditorActionListener((v, actionId, event) -> {
+                performSearch();
+                return true;
+            });
+        }
+
+        // Filter button
+        if (binding.ivFilter != null) {
+            binding.ivFilter.setOnClickListener(v -> showFilterDialog());
+        }
+    }
+
+    private void performSearch() {
+        String query = binding.etSearch != null ? binding.etSearch.getText().toString().trim() : "";
+        filterProducts(query, null);
+    }
+
+    private void filterProducts(String searchQuery, String categoryId) {
+        java.util.List<Product> filtered = new java.util.ArrayList<>();
+        
+        for (Product product : allProducts) {
+            boolean matchesSearch = searchQuery.isEmpty() || 
+                    (product.getName() != null && product.getName().toLowerCase().contains(searchQuery.toLowerCase())) ||
+                    (product.getDescription() != null && product.getDescription().toLowerCase().contains(searchQuery.toLowerCase()));
+            
+            boolean matchesCategory = categoryId == null || 
+                    categoryId.isEmpty() ||
+                    (product.getCategory() != null && product.getCategory().getId() != null && 
+                     product.getCategory().getId().equals(categoryId));
+            
+            if (matchesSearch && matchesCategory) {
+                filtered.add(product);
+            }
+        }
+        
+        productAdapter.submitList(filtered);
+    }
+
+    private void showFilterDialog() {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("Lọc sản phẩm");
+        
+        String[] categoryArray = new String[categories.size() + 1];
+        categoryArray[0] = "Tất cả";
+        for (int i = 0; i < categories.size(); i++) {
+            categoryArray[i + 1] = categories.get(i);
+        }
+        
+        builder.setItems(categoryArray, (dialog, which) -> {
+            if (which == 0) {
+                filterProducts(binding.etSearch != null ? binding.etSearch.getText().toString().trim() : "", null);
+            } else {
+                // Get category ID from the selected category name
+                // This is simplified - you may need to fetch category IDs from API
+                filterProducts(binding.etSearch != null ? binding.etSearch.getText().toString().trim() : "", null);
+            }
+        });
+        builder.show();
+    }
+
+    private void fetchCategories() {
+        // Extract unique categories from products
+        java.util.Set<String> categorySet = new java.util.HashSet<>();
+        for (Product product : allProducts) {
+            if (product.getCategory() != null && product.getCategory().getName() != null) {
+                categorySet.add(product.getCategory().getName());
+            }
+        }
+        categories = new java.util.ArrayList<>(categorySet);
     }
 
     private void navigateToLogin() {

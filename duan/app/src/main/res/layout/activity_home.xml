@@ -104,21 +104,30 @@
                         android:contentDescription="Search"
                         android:tint="@color/text_hint" />
 
-                    <TextView
+                    <EditText
+                        android:id="@+id/et_search"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Tìm kiếm sản phẩm..."
-                        android:textColor="@color/text_hint"
+                        android:hint="Tìm kiếm sản phẩm..."
+                        android:textColorHint="@color/text_hint"
+                        android:textColor="@color/text_primary"
                         android:textSize="15sp"
-                        android:layout_marginStart="12dp" />
+                        android:layout_marginStart="12dp"
+                        android:background="@android:color/transparent"
+                        android:inputType="text"
+                        android:imeOptions="actionSearch"
+                        android:maxLines="1" />
 
                     <ImageView
+                        android:id="@+id/iv_filter"
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:src="@android:drawable/ic_menu_sort_by_size"
                         android:contentDescription="Filter"
-                        android:tint="@color/text_hint" />
+                        android:tint="@color/text_hint"
+                        android:clickable="true"
+                        android:focusable="true" />
                 </LinearLayout>
             </LinearLayout>
 

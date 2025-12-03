@@ -127,10 +127,9 @@ public class OrdersAdapter extends ListAdapter<Order, OrdersAdapter.OrderViewHol
 
             // View detail button
             binding.btnViewDetail.setOnClickListener(v -> {
-                // TODO: Open order detail
-                android.widget.Toast.makeText(v.getContext(),
-                        "Chi tiết đơn hàng",
-                        android.widget.Toast.LENGTH_SHORT).show();
+                android.content.Intent intent = new android.content.Intent(v.getContext(), OrderDetailActivity.class);
+                intent.putExtra("order_id", order.getId());
+                v.getContext().startActivity(intent);
             });
         }
     }

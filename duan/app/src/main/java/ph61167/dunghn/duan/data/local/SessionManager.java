@@ -59,5 +59,13 @@ public class SessionManager {
     public String getUserEmail() {
         return preferences.getString(KEY_USER_EMAIL, null);
     }
+
+    public void saveUserName(String name) {
+        preferences.edit().putString(KEY_USER_NAME, name).apply();
+    }
+
+    public void saveUserEmail(String email) {
+        preferences.edit().putString(KEY_USER_EMAIL, email).apply();
+    }
 }
 
