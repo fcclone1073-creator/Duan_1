@@ -3,46 +3,52 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/background">
 
     <!-- Header -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white">
+        android:background="@color/surface"
+        android:elevation="4dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="60dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="16dp">
+            android:paddingHorizontal="16dp">
 
             <ImageButton
                 android:id="@+id/btn_back"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@android:drawable/ic_menu_revert"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Back" />
+                android:tint="@color/text_primary"
+                android:contentDescription="Back"
+                android:padding="8dp" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="My Wishlist"
+                android:text="Sản phẩm yêu thích"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@color/black"
+                android:textColor="@color/text_primary"
+                android:fontFamily="sans-serif-medium"
                 android:gravity="center" />
 
             <ImageButton
                 android:id="@+id/btn_search"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:src="@android:drawable/ic_menu_search"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Search" />
+                android:tint="@color/text_primary"
+                android:contentDescription="Search"
+                android:padding="8dp" />
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -61,56 +67,108 @@
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp">
+                android:scrollbars="none"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="16dp">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <Button
-                        android:id="@+id/btn_all"
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_all"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="All"
-                        android:backgroundTint="@color/black"
+                        android:text="Tất cả"
                         android:textColor="@color/white"
-                        android:layout_marginEnd="8dp" />
+                        app:chipBackgroundColor="@color/primary"
+                        app:chipCornerRadius="20dp"
+                        android:layout_marginHorizontal="4dp" />
 
-                    <Button
-                        android:id="@+id/btn_shoes"
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_phone"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Shoes"
-                        android:backgroundTint="@color/white"
-                        android:textColor="@color/black"
-                        android:layout_marginEnd="8dp" />
+                        android:text="Điện thoại"
+                        android:textColor="@color/text_primary"
+                        app:chipBackgroundColor="@color/surface"
+                        app:chipCornerRadius="20dp"
+                        android:layout_marginHorizontal="4dp" />
 
-                    <Button
-                        android:id="@+id/btn_phones"
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_laptop"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Phones"
-                        android:backgroundTint="@color/white"
-                        android:textColor="@color/black"
-                        android:layout_marginEnd="8dp" />
+                        android:text="Laptop"
+                        android:textColor="@color/text_primary"
+                        app:chipBackgroundColor="@color/surface"
+                        app:chipCornerRadius="20dp"
+                        android:layout_marginHorizontal="4dp" />
 
-                    <Button
-                        android:id="@+id/btn_bags"
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_accessories"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Bags"
-                        android:backgroundTint="@color/white"
-                        android:textColor="@color/black" />
+                        android:text="Phụ kiện"
+                        android:textColor="@color/text_primary"
+                        app:chipBackgroundColor="@color/surface"
+                        app:chipCornerRadius="20dp"
+                        android:layout_marginHorizontal="4dp" />
                 </LinearLayout>
             </HorizontalScrollView>
+
+            <!-- Empty State -->
+            <LinearLayout
+                android:id="@+id/empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="48dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:src="@android:drawable/btn_star_big_on"
+                    android:tint="@color/text_hint"
+                    android:alpha="0.5" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chưa có sản phẩm yêu thích"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginTop="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hãy thêm sản phẩm vào danh sách"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+
+            <!-- Loading -->
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminateTint="@color/primary"
+                android:layout_marginTop="48dp"
+                android:visibility="gone" />
 
             <!-- Products Grid -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_wishlist"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
+                android:padding="8dp"
                 android:clipToPadding="false" />
 
         </LinearLayout>

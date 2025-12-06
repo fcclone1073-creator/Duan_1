@@ -1,13 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Primary Colors - Modern Teal/Cyan Theme -->
+    <color name="primary">#00BFA5</color>
+    <color name="primary_dark">#00897B</color>
+    <color name="primary_light">#64FFDA</color>
+    <color name="accent">#FF6B6B</color>
+    
+    <!-- Background Colors -->
+    <color name="background">#F8FAFC</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="card_background">#FFFFFF</color>
+    
+    <!-- Text Colors -->
+    <color name="text_primary">#1A1A2E</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_hint">#94A3B8</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    
+    <!-- Status Colors -->
+    <color name="success">#10B981</color>
+    <color name="warning">#F59E0B</color>
+    <color name="error">#EF4444</color>
+    <color name="info">#3B82F6</color>
+    
+    <!-- Button Colors -->
+    <color name="button_primary">#00BFA5</color>
+    <color name="button_secondary">#1A1A2E</color>
+    <color name="button_danger">#EF4444</color>
+    
+    <!-- UI Element Colors -->
+    <color name="divider">#E2E8F0</color>
+    <color name="input_background">#F1F5F9</color>
+    <color name="input_stroke">#CBD5E1</color>
+    <color name="input_stroke_focused">#00BFA5</color>
+    
+    <!-- Special Colors -->
+    <color name="gradient_start">#00BFA5</color>
+    <color name="gradient_end">#64FFDA</color>
+    <color name="shadow">#1A000000</color>
+    <color name="overlay">#80000000</color>
+    
+    <!-- Price Colors -->
+    <color name="price_color">#EF4444</color>
+    <color name="price_old">#94A3B8</color>
+    <color name="discount_badge">#10B981</color>
+    
+    <!-- Rating -->
+    <color name="star_filled">#FFC107</color>
+    <color name="star_empty">#E2E8F0</color>
+    
+    <!-- Heart/Favorite -->
+    <color name="heart_filled">#EF4444</color>
+    <color name="heart_empty">#CBD5E1</color>
+    
+    <!-- Bottom Navigation -->
+    <color name="nav_selected">#00BFA5</color>
+    <color name="nav_unselected">#94A3B8</color>
+    
+    <!-- Legacy Colors (for backward compatibility) -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="yellow_button">#FFD700</color>
-    <color name="blue_text">#2196F3</color>
-    <color name="light_gray">#F5F5F5</color>
-    <color name="gray_border">#E0E0E0</color>
-    <color name="dark_gray">#424242</color>
-    <color name="pink_button">#E91E63</color>
-    <color name="purple_button">#9C27B0</color>
-    <color name="red_heart">#F44336</color>
+    <color name="yellow_button">#00BFA5</color>
+    <color name="blue_text">#00BFA5</color>
+    <color name="light_gray">#F1F5F9</color>
+    <color name="gray_border">#E2E8F0</color>
+    <color name="dark_gray">#64748B</color>
+    <color name="pink_button">#FF6B6B</color>
+    <color name="purple_button">#8B5CF6</color>
+    <color name="red_heart">#EF4444</color>
 </resources>

@@ -4,40 +4,138 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/surface">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="8dp">
+        android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/iv_product"
+        <!-- Image Container -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:src="@drawable/img"
-            android:scaleType="centerCrop"
-            android:background="@color/light_gray" />
+            android:layout_height="160dp">
 
-        <TextView
-            android:id="@+id/tv_product_name"
+            <ImageView
+                android:id="@+id/iv_product"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/img"
+                android:scaleType="centerCrop"
+                android:background="@color/input_background" />
+
+            <!-- Favorite Button -->
+            <ImageView
+                android:id="@+id/iv_favorite"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:padding="8dp"
+                android:src="@android:drawable/btn_star_big_off"
+                android:background="@drawable/bg_card"
+                android:contentDescription="Favorite" />
+
+            <!-- Discount Badge -->
+            <TextView
+                android:id="@+id/tv_discount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="8dp"
+                android:background="@color/discount_badge"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="-20%"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- Product Info -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="iPhone 13"
-            android:textSize="14sp"
-            android:textColor="@color/black"
-            android:layout_marginTop="8dp" />
+            android:orientation="vertical"
+            android:padding="12dp">
 
-        <TextView
-            android:id="@+id/tv_product_price"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="NGN 46,000"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_marginTop="4dp" />
+            <TextView
+                android:id="@+id/tv_product_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="iPhone 13 Pro Max"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:lineSpacingExtra="2dp" />
+
+            <!-- Rating -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="6dp">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@android:drawable/btn_star_big_on"
+                    android:tint="@color/star_filled" />
+
+                <TextView
+                    android:id="@+id/tv_rating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="4.5"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginStart="4dp" />
+
+                <TextView
+                    android:id="@+id/tv_sold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="• Đã bán 120"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <!-- Price -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
+
+                <TextView
+                    android:id="@+id/tv_product_price"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="25,990,000₫"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/price_color"
+                    android:fontFamily="sans-serif-medium" />
+
+                <ImageView
+                    android:id="@+id/iv_add_cart"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="6dp"
+                    android:src="@android:drawable/ic_input_add"
+                    android:background="@drawable/bg_button_primary"
+                    android:contentDescription="Add to cart"
+                    android:tint="@color/white" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

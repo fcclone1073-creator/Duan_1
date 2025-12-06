@@ -21,11 +21,6 @@ import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 import retrofit2.http.DELETE;
-import java.util.List;
-import ph61167.dunghn.duan.data.model.TopProductStat;
-import ph61167.dunghn.duan.data.model.TopCustomerStat;
-import ph61167.dunghn.duan.data.remote.response.TopProductsListData;
-import ph61167.dunghn.duan.data.remote.response.TopCustomersListData;
 
 public interface ApiService {
 
@@ -62,10 +57,7 @@ public interface ApiService {
     @DELETE("v1/cart/items/{productId}")
     Call<BaseResponse<CartData>> deleteCartItem(@Path("productId") String productId, @Query("userId") String userId);
 
-    @GET("orders/top-products")
-    Call<BaseResponse<TopProductsListData>> getTopProducts(@Query("start") String startIsoDateTimeZ, @Query("end") String endIsoDateTimeZ, @Query("status") String status, @Query("limit") int limit);
-
-    @GET("orders/top-customers")
-    Call<BaseResponse<TopCustomersListData>> getTopCustomers(@Query("start") String startIsoDateTimeZ, @Query("end") String endIsoDateTimeZ, @Query("status") String status, @Query("limit") int limit);
+    @GET("orders/user/{id}")
+    Call<BaseResponse<List<Order>>> getOrdersByUser(@Path("id") String userId);
 }
 

@@ -47,7 +47,11 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.okhttp.logging)
+<<<<<<< HEAD
     implementation(libs.glide)
+=======
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+>>>>>>> 3f8aaddc73892d73dcd74905b2ff593a3a621411
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

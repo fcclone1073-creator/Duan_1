@@ -1,7 +1,25 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+    <!-- Base application theme for night mode -->
     <style name="Base.Theme.Duan" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <!-- Primary Colors -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/text_on_primary</item>
+        
+        <!-- Secondary Colors -->
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        
+        <!-- Background Colors - Dark mode -->
+        <item name="android:colorBackground">#121212</item>
+        <item name="colorSurface">#1E1E1E</item>
+        <item name="colorOnSurface">@color/white</item>
+        
+        <!-- Status Bar -->
+        <item name="android:statusBarColor">#121212</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
+
+    <style name="Theme.Duan" parent="Base.Theme.Duan" />
 </resources>
