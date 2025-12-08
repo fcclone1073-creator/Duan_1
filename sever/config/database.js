@@ -2,46 +2,29 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-// <<<<<<< HEAD
-    const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-    const dbName = process.env.MONGODB_DB || 'duan1';
-    const conn = await mongoose.connect(uri, { dbName });
-// =======
-//     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/duan1';
-    
-//     // Cấu hình kết nối với các options phù hợp cho Mongoose 8
-//     const options = {
-//       serverSelectionTimeoutMS: 5000, // Timeout sau 5 giây nếu không kết nối được
-//       socketTimeoutMS: 45000, // Timeout cho socket
-//     };
-
-//     const conn = await mongoose.connect(mongoURI, options);
-
-//     console.log(`✅ Kết nối MongoDB thành công`);
-//     console.log(`📊 Database: ${conn.connection.name}`);
-//     console.log(`🔗 Host: ${conn.connection.host}`);
-//     console.log(`🔌 Port: ${conn.connection.port}`);
-    
-//     // Xử lý các sự kiện kết nối
-//     mongoose.connection.on('error', (err) => {
-//       console.error(`❌ MongoDB connection error: ${err.message}`);
-//     });
-
-//     mongoose.connection.on('disconnected', () => {
-//       console.warn('⚠️  MongoDB đã ngắt kết nối');
-//     });
-
-//     mongoose.connection.on('reconnected', () => {
-//       console.log('✅ MongoDB đã kết nối lại');
-//     });
-
-//     // Xử lý khi ứng dụng tắt
-//     process.on('SIGINT', async () => {
-//       await mongoose.connection.close();
-//       console.log('MongoDB connection closed through app termination');
-//       process.exit(0);
-//     });
-// >>>>>>> 3f8aaddc73892d73dcd74905b2ff593a3a621411
+    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/duan1';
+    const options = { serverSelectionTimeoutMS: 5000, socketTimeoutMS: 45000 };
+    const isLocal = mongoURI.includes('localhost') || mongoURI.includes('127.0.0.1');
+    console.log(`🔧 MongoDB mode: ${isLocal ? 'local' : 'atlas'}`);
+    const conn = await mongoose.connect(mongoURI, options);
+    console.log('✅ Kết nối MongoDB thành công');
+    console.log(`📊 Database: ${conn.connection.name}`);
+    console.log(`🔗 Host: ${conn.connection.host}`);
+    console.log(`🔌 Port: ${conn.connection.port}`);
+    mongoose.connection.on('error', (err) => {
+      console.error(`❌ MongoDB connection error: ${err.message}`);
+    });
+    mongoose.connection.on('disconnected', () => {
+      console.warn('⚠️  MongoDB đã ngắt kết nối');
+    });
+    mongoose.connection.on('reconnected', () => {
+      console.log('✅ MongoDB đã kết nối lại');
+    });
+    process.on('SIGINT', async () => {
+      await mongoose.connection.close();
+      console.log('MongoDB connection closed through app termination');
+      process.exit(0);
+    });
 
   } catch (error) {
     console.error(`❌ Kết nối MongoDB thất bại`);
