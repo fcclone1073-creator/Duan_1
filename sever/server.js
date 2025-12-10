@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const connectDB = require('./config/database');
 
 const app = express();
@@ -51,6 +52,7 @@ const startServer = async () => {
     app.use('/api/upload', uploadRoutes);
     app.use('/api/notifications', notificationsRoutes);
     app.use('/api/cart', cartRoutes);
+    app.use('/api/v1/cart', cartRoutes);
     app.use('/api/statistics', statisticsRoutes);
     app.use('/api/warehouse', warehouseRoutes);
 
@@ -75,6 +77,10 @@ const startServer = async () => {
           warehouse: '/api/warehouse'
         }
       });
+    });
+
+    app.get('/health', (req, res) => {
+      res.json({ server: 'ok', db: mongoose.connection.readyState });
     });
 
     const PORT = process.env.PORT || 3000;

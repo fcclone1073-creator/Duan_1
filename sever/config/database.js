@@ -39,7 +39,7 @@ const connectDB = async () => {
       console.error('💡 Gợi ý: Kiểm tra lại MONGODB_URI trong file .env');
     }
     
-    process.exit(1);
+    throw error;
   }
 };
 
