@@ -106,6 +106,35 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Thêm người dùng (Admin)
+router.post('/create', async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password) {
+      return res.status(400).json(buildResponse(false, 'Vui lòng cung cấp đầy đủ thông tin'));
+    }
+    if (password.length < 6) {
+      return res.status(400).json(buildResponse(false, 'Mật khẩu tối thiểu 6 ký tự'));
+    }
+    const normalizedEmail = String(email).toLowerCase();
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      return res.status(400).json(buildResponse(false, 'Email đã được sử dụng'));
+    }
+    const allowedRoles = ['user', 'admin'];
+    const finalRole = allowedRoles.includes(role) ? role : 'user';
+    const user = await User.create({
+      name,
+      email: normalizedEmail,
+      password: hashPassword(password),
+      role: finalRole
+    });
+    res.status(200).json(buildResponse(true, 'Đã thêm người dùng', sanitizeUser(user)));
+  } catch (error) {
+    res.status(400).json(buildResponse(false, error.message));
+  }
+});
+
 // Danh sách người dùng
 router.get('/list', async (req, res) => {
   try {
