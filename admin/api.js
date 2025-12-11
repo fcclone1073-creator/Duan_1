@@ -46,6 +46,15 @@ async function apiRequest(endpoint, options = {}) {
         }
     };
 
+    if (endpoint === '/users/create' && (config.method || 'GET').toUpperCase() === 'POST') {
+        try {
+            const preview = typeof config.body === 'string' ? JSON.parse(config.body) : config.body;
+            console.log('DEBUG /users/create payload:', preview);
+        } catch (e) {
+            console.log('DEBUG /users/create body (raw):', config.body);
+        }
+    }
+
     try {
         const response = await fetch(url, config);
         
@@ -57,8 +66,11 @@ async function apiRequest(endpoint, options = {}) {
         
         const data = await response.json();
 
-        if (!data.success) {
-            throw new Error(data.message || 'Có lỗi xảy ra');
+        if (data && typeof data === 'object') {
+            const hasSuccess = Object.prototype.hasOwnProperty.call(data, 'success');
+            if (hasSuccess && data.success === false) {
+                throw new Error(data.message || 'Có lỗi xảy ra');
+            }
         }
 
         return data;
@@ -142,6 +154,30 @@ const OrdersAPI = {
         return apiRequest(`/orders/${id}`);
     },
 
+    async getDetail(id) {
+        return apiRequest(`/orders/detail/${id}`);
+    },
+
+    async getTopCustomers({ limit = 5, status = 'completed', start, end } = {}) {
+        const queryParams = new URLSearchParams();
+        if (limit) queryParams.append('limit', limit);
+        if (status) queryParams.append('status', status);
+        if (start) queryParams.append('start', start);
+        if (end) queryParams.append('end', end);
+        const query = queryParams.toString();
+        return apiRequest(`/orders/top-customers${query ? '?' + query : ''}`);
+    },
+
+    async getTopProducts({ limit = 5, status = 'completed', start, end } = {}) {
+        const queryParams = new URLSearchParams();
+        if (limit) queryParams.append('limit', limit);
+        if (status) queryParams.append('status', status);
+        if (start) queryParams.append('start', start);
+        if (end) queryParams.append('end', end);
+        const query = queryParams.toString();
+        return apiRequest(`/orders/top-products${query ? '?' + query : ''}`);
+    },
+
     async updateStatus(id, status) {
         return apiRequest(`/orders/${id}`, {
             method: 'PUT',
@@ -159,7 +195,7 @@ const OrdersAPI = {
 // ===== Users API =====
 const UsersAPI = {
     async getAll() {
-        return apiRequest('/users');
+        return apiRequest('/users/list');
     },
 
     async getById(id) {
@@ -167,7 +203,7 @@ const UsersAPI = {
     },
 
     async create(userData) {
-        return apiRequest('/users/register', {
+        return apiRequest('/users/create', {
             method: 'POST',
             body: JSON.stringify(userData)
         });

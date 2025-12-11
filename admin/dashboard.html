@@ -301,16 +301,39 @@
                     <h2>Thống kê</h2>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Doanh thu theo tháng</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="revenueChart" class="chart-placeholder">
-                                <p class="text-muted">Biểu đồ doanh thu</p>
+                <div class="stats-two-col">
+                    <div class="col-large">
+                        <div id="statsKPI" class="stats-grid"></div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Biểu đồ Doanh thu</h3>
+                                <div class="chart-controls">
+                                    <select id="chartViewSelect">
+                                        <option value="month">Theo tháng</option>
+                                        <option value="day">Theo ngày</option>
+                                        <option value="month_range">Khoảng tháng</option>
+                                        <option value="day_range">Khoảng ngày</option>
+                                    </select>
+                                    <select id="chartYearSelect"></select>
+                                    <select id="chartMonthSelect" style="display:none;"></select>
+                                    <input type="month" id="monthStartInput" style="display:none;">
+                                    <input type="month" id="monthEndInput" style="display:none;">
+                                    <input type="date" id="dayStartInput" style="display:none;">
+                                    <input type="date" id="dayEndInput" style="display:none;">
+                                    <button id="applyRangeBtn" class="btn-secondary" style="display:none;">Áp dụng</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="revenueCompare" class="compare-text"></div>
+                                <div id="revenueChart" class="chart-placeholder">
+                                    <p class="text-muted">Biểu đồ doanh thu</p>
+                                </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="col-medium">
+                        <div id="topCustomersContainer"></div>
+                        <div id="topProductsContainer"></div>
                     </div>
                 </div>
             </div>
@@ -442,8 +465,8 @@
                 <input type="hidden" id="userId">
                 
                 <div class="form-group">
-                    <label for="userName">Tên người dùng *</label>
-                    <input type="text" id="userName" required>
+                    <label for="userNameInput">Tên người dùng *</label>
+                    <input type="text" id="userNameInput" required>
                 </div>
 
                 <div class="form-group">
@@ -460,8 +483,8 @@
                 <div class="form-group">
                     <label for="userRole">Vai trò *</label>
                     <select id="userRole" required>
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
+                        <option value="user">user</option>
+                        <option value="admin">admin</option>
                     </select>
                 </div>
 

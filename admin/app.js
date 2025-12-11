@@ -527,8 +527,8 @@ function filterOrders() {
 
 async function viewOrder(id) {
     try {
-        const response = await OrdersAPI.getById(id);
-        const order = response.data;
+        const response = await OrdersAPI.getDetail(id);
+        const order = response.data?.data || response.data;
         
         const itemsHtml = order.items?.map(item => {
             const product = item.product || {};
@@ -652,7 +652,16 @@ async function deleteOrder(id) {
 async function loadUsers() {
     try {
         const response = await UsersAPI.getAll();
-        allUsers = Array.isArray(response.data) ? response.data : (response.data?.users || []);
+        let users = [];
+        if (Array.isArray(response.data)) users = response.data;
+        else if (Array.isArray(response.data?.users)) users = response.data.users;
+        else if (Array.isArray(response.data?.items)) users = response.data.items;
+        else if (Array.isArray(response.items)) users = response.items;
+        else if (response.data && typeof response.data === 'object') {
+            const firstArray = Object.values(response.data).find(v => Array.isArray(v));
+            users = firstArray || [];
+        }
+        allUsers = users;
         currentUserPage = 1; // Reset to first page
         renderUsers(allUsers);
     } catch (error) {
@@ -689,10 +698,7 @@ function renderUsers(users) {
                 <td>${createdAt}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="action-btn action-btn-edit" onclick="editUser('${user._id}')">
-                            <i class="fas fa-edit"></i> Sửa
-                        </button>
-                        <button class="action-btn action-btn-delete" onclick="deleteUser('${user._id}')">
+                        <button class="action-btn action-btn-delete" onclick="deleteUser('${user._id || user.id}')">
                             <i class="fas fa-trash"></i> Xóa
                         </button>
                     </div>
@@ -722,7 +728,7 @@ async function editUser(id) {
         document.getElementById('userModalTitle').textContent = 'Sửa người dùng';
         document.getElementById('userSubmitText').textContent = 'Cập nhật';
         document.getElementById('userId').value = user._id || user.id;
-        document.getElementById('userName').value = user.name || '';
+        document.getElementById('userNameInput').value = user.name || '';
         document.getElementById('userEmail').value = user.email || '';
         document.getElementById('userRole').value = user.role || 'user';
         document.getElementById('userPassword').value = '';
@@ -880,29 +886,45 @@ document.addEventListener('DOMContentLoaded', function() {
     if (userForm) {
         userForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (this.dataset.submitting === 'true') return;
+            this.dataset.submitting = 'true';
             
             const userId = document.getElementById('userId').value;
-            const userData = {
-                name: document.getElementById('userName').value,
-                email: document.getElementById('userEmail').value,
-                role: document.getElementById('userRole').value
-            };
+            const nameVal = (document.getElementById('userNameInput').value || '').trim();
+            const emailVal = (document.getElementById('userEmail').value || '').trim();
+            let roleVal = (document.getElementById('userRole').value || '').trim();
+            const passwordVal = (document.getElementById('userPassword').value || '').trim();
 
-            const password = document.getElementById('userPassword').value;
-            if (password) {
-                userData.password = password;
+            // Normalize role
+            roleVal = roleVal ? roleVal.toLowerCase() : 'user';
+
+            // Use native HTML validation first
+            if (!this.checkValidity()) {
+                showNotification('Vui lòng điền đúng thông tin bắt buộc', 'warning');
+                return;
             }
+
+            // Additional create-only check: require password
+            if (!userId && !passwordVal) {
+                showNotification('Mật khẩu là bắt buộc khi tạo mới', 'warning');
+                return;
+            }
+
+            const userData = { name: nameVal, email: emailVal, role: roleVal };
 
             try {
                 if (userId) {
                     await UsersAPI.update(userId, userData);
                     showNotification('Cập nhật người dùng thành công', 'success');
                 } else {
-                    if (!password) {
-                        showNotification('Mật khẩu là bắt buộc khi tạo mới', 'warning');
+                    if (passwordVal.length < 6) {
+                        showNotification('Mật khẩu tối thiểu 6 ký tự', 'warning');
+                        this.dataset.submitting = 'false';
                         return;
                     }
-                    await UsersAPI.create(userData);
+                    const createData = { name: nameVal, email: emailVal, role: roleVal, password: passwordVal };
+                    const res = await UsersAPI.create(createData);
+                    console.log('Create user response:', res);
                     showNotification('Thêm người dùng thành công', 'success');
                 }
                 closeModal('userModal');
@@ -912,6 +934,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 showNotification(error.message || 'Có lỗi xảy ra', 'error');
+            } finally {
+                this.dataset.submitting = 'false';
             }
         });
     }
@@ -931,83 +955,377 @@ async function loadStatistics() {
         // Calculate monthly revenue
         const monthlyRevenue = {};
         orders.forEach(order => {
-            if (order.status === 'delivered') {
+            if (isOrderCompleted(order.status)) {
                 const date = new Date(order.createdAt);
                 const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 monthlyRevenue[monthKey] = (monthlyRevenue[monthKey] || 0) + (order.totalAmount || order.total || 0);
             }
         });
 
-        // Render simple chart
+        const statsPage = document.getElementById('statistics');
         const chartContainer = document.getElementById('revenueChart');
-        if (chartContainer) {
-            const months = Object.keys(monthlyRevenue).sort();
-            const revenues = months.map(m => monthlyRevenue[m]);
-            const maxRevenue = Math.max(...revenues, 1);
+        const compareEl = document.getElementById('revenueCompare');
+        const viewSelect = document.getElementById('chartViewSelect');
+        const yearSelect = document.getElementById('chartYearSelect');
+        const monthSelect = document.getElementById('chartMonthSelect');
+        const monthStartInput = document.getElementById('monthStartInput');
+        const monthEndInput = document.getElementById('monthEndInput');
+        const dayStartInput = document.getElementById('dayStartInput');
+        const dayEndInput = document.getElementById('dayEndInput');
+        const applyRangeBtn = document.getElementById('applyRangeBtn');
+
+        const deliveredOrders = orders.filter(o => isOrderCompleted(o.status));
+
+        const years = Array.from(new Set(orders.map(o => {
+            const d = new Date(o.createdAt);
+            return isNaN(d.getTime()) ? null : d.getFullYear();
+        }).filter(y => y !== null))).sort((a,b)=>b-a);
+        if (yearSelect) {
+            const options = years.length > 0 ? years.map(y => `<option value="${y}">${y}</option>`).join('') : `<option value="${new Date().getFullYear()}">${new Date().getFullYear()}</option>`;
+            yearSelect.innerHTML = options;
+        }
+        if (monthSelect) {
+            monthSelect.innerHTML = Array.from({length:12}, (_,i)=>{
+                const m = i+1; const label = `Tháng ${String(m).padStart(2,'0')}`;
+                return `<option value="${m}">${label}</option>`;
+            }).join('');
+        }
+
+        const now = new Date();
+        const defaultYear = years[0] || now.getFullYear();
+        const defaultMonth = now.getMonth()+1;
+        if (yearSelect) yearSelect.value = String(defaultYear);
+        if (monthSelect) monthSelect.value = String(defaultMonth);
+        if (viewSelect) viewSelect.value = 'month';
+
+        function renderRevenueChart(view, year, month) {
+            if (!chartContainer) return;
+            let labels = [];
+            let values = [];
+            let maxRevenue = 1;
+            let compareText = '';
+
+            if (view === 'month') {
+                const monthTotals = Array.from({length:12}, (_,i)=>0);
+                deliveredOrders.forEach(o => {
+                    const d = new Date(o.createdAt);
+                    if (d.getFullYear() === Number(year)) {
+                        const idx = d.getMonth();
+                        monthTotals[idx] += (o.totalAmount || o.total || 0);
+                    }
+                });
+                labels = Array.from({length:12}, (_,i)=>new Date(Number(year), i, 1).toLocaleDateString('vi-VN', { month: 'short' }));
+                values = monthTotals;
+                maxRevenue = Math.max(...values, 1);
+                const lastIdx = values.slice().map((v,i)=>({v,i})).reverse().find(x=>x.v>0)?.i ?? null;
+                if (lastIdx !== null) {
+                    const curr = values[lastIdx];
+                    const prev = values[lastIdx-1] ?? 0;
+                    const diff = curr - prev;
+                    const pct = prev === 0 ? 100 : Math.round((diff/prev)*100);
+                    const sign = diff >= 0 ? '+' : '';
+                    compareText = `Tháng gần nhất: ${formatCurrency(curr)} (${sign}${pct}% so với tháng trước)`;
+                }
+            } else if (view === 'day') {
+                const daysInMonth = new Date(Number(year), Number(month), 0).getDate();
+                const dayTotals = Array.from({length:daysInMonth}, ()=>0);
+                deliveredOrders.forEach(o => {
+                    const d = new Date(o.createdAt);
+                    if (d.getFullYear() === Number(year) && (d.getMonth()+1) === Number(month)) {
+                        dayTotals[d.getDate()-1] += (o.totalAmount || o.total || 0);
+                    }
+                });
+                labels = Array.from({length:daysInMonth}, (_,i)=>String(i+1));
+                values = dayTotals;
+                maxRevenue = Math.max(...values, 1);
+                const currTotal = values.reduce((s,v)=>s+v,0);
+                const prevMonth = Number(month) - 1 || 12;
+                const prevYear = prevMonth === 12 ? Number(year)-1 : Number(year);
+                const prevDays = new Date(prevYear, prevMonth, 0).getDate();
+                const prevTotals = Array.from({length:prevDays}, ()=>0);
+                deliveredOrders.forEach(o => {
+                    const d = new Date(o.createdAt);
+                    if (d.getFullYear() === prevYear && (d.getMonth()+1) === prevMonth) {
+                        prevTotals[d.getDate()-1] += (o.totalAmount || o.total || 0);
+                    }
+                });
+                const prevTotal = prevTotals.reduce((s,v)=>s+v,0);
+                const diff = currTotal - prevTotal;
+                const pct = prevTotal === 0 ? 100 : Math.round((diff/prevTotal)*100);
+                const sign = diff >= 0 ? '+' : '';
+                compareText = `Tháng ${String(month).padStart(2,'0')}/${year}: ${formatCurrency(currTotal)} (${sign}${pct}% so với tháng trước)`;
+            } else if (view === 'day_range') {
+                const start = new Date(dayStartInput?.value || new Date());
+                const end = new Date(dayEndInput?.value || new Date());
+                if (start > end) { const t = start; start = end; end = t; }
+                const days = Math.ceil((end - start) / (24*3600*1000)) + 1;
+                const totals = Array.from({length:days}, ()=>0);
+                deliveredOrders.forEach(o => {
+                    const d = new Date(o.createdAt);
+                    if (d >= start && d <= end) {
+                        const idx = Math.floor((d - start)/(24*3600*1000));
+                        totals[idx] += (o.totalAmount || o.total || 0);
+                    }
+                });
+                labels = Array.from({length:days}, (_,i)=>{
+                    const d = new Date(start.getTime() + i*24*3600*1000);
+                    return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                });
+                values = totals;
+                maxRevenue = Math.max(...values, 1);
+                compareText = `${labels[0]} – ${labels[labels.length-1]}: ${formatCurrency(values.reduce((s,v)=>s+v,0))}`;
+            } else if (view === 'month_range') {
+                const ms = monthStartInput?.value;
+                const me = monthEndInput?.value;
+                let sY = Number(ms?.split('-')[0]);
+                let sM = Number(ms?.split('-')[1]);
+                let eY = Number(me?.split('-')[0]);
+                let eM = Number(me?.split('-')[1]);
+                if (!sY || !sM || !eY || !eM) {
+                    const nowM = new Date();
+                    sY = nowM.getFullYear(); sM = 1; eY = nowM.getFullYear(); eM = nowM.getMonth()+1;
+                }
+                const start = new Date(sY, sM-1, 1);
+                const end = new Date(eY, eM, 0, 23, 59, 59, 999);
+                const months = [];
+                let curY = sY, curM = sM;
+                while (curY < eY || (curY === eY && curM <= eM)) {
+                    months.push({ y: curY, m: curM });
+                    curM++; if (curM === 13) { curM = 1; curY++; }
+                }
+                const monthTotals = months.map(() => 0);
+                deliveredOrders.forEach(o => {
+                    const d = new Date(o.createdAt);
+                    if (d >= start && d <= end) {
+                        const idx = months.findIndex(mm => mm.y === d.getFullYear() && mm.m === (d.getMonth()+1));
+                        if (idx >= 0) monthTotals[idx] += (o.totalAmount || o.total || 0);
+                    }
+                });
+                labels = months.map(mm => new Date(mm.y, mm.m-1, 1).toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' }));
+                values = monthTotals;
+                maxRevenue = Math.max(...values, 1);
+                compareText = `${labels[0]} – ${labels[labels.length-1]}: ${formatCurrency(values.reduce((s,v)=>s+v,0))}`;
+            }
 
             chartContainer.innerHTML = `
                 <div class="chart-container">
-                    ${months.map((month, index) => {
-                        const height = (revenues[index] / maxRevenue) * 100;
+                    ${labels.map((label, index) => {
+                        const height = (values[index] / maxRevenue) * 100;
                         return `
                             <div class="chart-bar-wrapper">
                                 <div class="chart-bar" style="height: ${height}%">
-                                    <span class="chart-value">${formatCurrency(revenues[index])}</span>
+                                    <span class="chart-value">${formatCurrency(values[index])}</span>
                                 </div>
-                                <span class="chart-label">${new Date(month + '-01').toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' })}</span>
+                                <span class="chart-label">${label}</span>
                             </div>
                         `;
                     }).join('')}
                 </div>
-                ${months.length === 0 ? '<p class="text-muted">Chưa có dữ liệu doanh thu</p>' : ''}
+                ${values.every(v=>v===0) ? '<p class="text-muted">Chưa có dữ liệu doanh thu</p>' : ''}
             `;
+            if (compareEl) compareEl.textContent = compareText;
         }
 
-        // Top selling products
-        const topProducts = products
-            .sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0))
-            .slice(0, 5);
-
-        const topProductsHtml = `
-            <div class="card">
-                <div class="card-header">
-                    <h3>Sản phẩm bán chạy nhất</h3>
-                </div>
-                <div class="card-body">
-                    ${topProducts.length > 0 ? `
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Tên sản phẩm</th>
-                                    <th>Đã bán</th>
-                                    <th>Doanh thu</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${topProducts.map(p => `
-                                    <tr>
-                                        <td>${p.name || 'N/A'}</td>
-                                        <td>${p.soldCount || 0}</td>
-                                        <td>${formatCurrency((p.price || 0) * (p.soldCount || 0))}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    ` : '<p class="text-muted">Chưa có dữ liệu</p>'}
-                </div>
-            </div>
-        `;
-
-        const statsPage = document.getElementById('statistics');
-        if (statsPage) {
-            const existingTopProducts = statsPage.querySelector('.top-products-card');
-            if (existingTopProducts) {
-                existingTopProducts.remove();
+        if (viewSelect && yearSelect && monthSelect) {
+            function syncVisibility() {
+                const v = viewSelect.value;
+                yearSelect.style.display = v === 'month' || v === 'day' ? 'inline-block' : 'none';
+                monthSelect.style.display = v === 'day' ? 'inline-block' : 'none';
+                monthStartInput.style.display = v === 'month_range' ? 'inline-block' : 'none';
+                monthEndInput.style.display = v === 'month_range' ? 'inline-block' : 'none';
+                dayStartInput.style.display = v === 'day_range' ? 'inline-block' : 'none';
+                dayEndInput.style.display = v === 'day_range' ? 'inline-block' : 'none';
+                applyRangeBtn.style.display = v === 'day_range' || v === 'month_range' ? 'inline-block' : 'none';
             }
-            const topProductsCard = document.createElement('div');
-            topProductsCard.className = 'top-products-card';
-            topProductsCard.innerHTML = topProductsHtml;
-            statsPage.querySelector('.stats-grid').appendChild(topProductsCard);
+            syncVisibility();
+            viewSelect.onchange = () => { syncVisibility(); renderRevenueChart(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); renderTopCustomers(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); renderTopProducts(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); };
+            yearSelect.onchange = () => { renderRevenueChart(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); renderTopCustomers(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); renderTopProducts(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); };
+            monthSelect.onchange = () => { renderRevenueChart(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); renderTopCustomers(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); renderTopProducts(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); };
+            applyRangeBtn.onclick = () => { renderRevenueChart(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); renderTopCustomers(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); renderTopProducts(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value)); };
+        }
+        renderRevenueChart(viewSelect ? viewSelect.value : 'month', Number(yearSelect?.value || defaultYear), Number(monthSelect?.value || defaultMonth));
+
+        async function renderTopProducts(view, year, month) {
+            const topProductsContainer = document.getElementById('topProductsContainer');
+            if (!topProductsContainer) return;
+            let start, end;
+            if (typeof computeRange === 'function') {
+                const r = computeRange(view, year, month); start = r.start; end = r.end;
+            }
+            try {
+                const res = await OrdersAPI.getTopProducts({ limit: 5, status: 'completed', start, end });
+                let items = [];
+                const d = res.data;
+                if (Array.isArray(d)) items = d;
+                else if (Array.isArray(d?.items)) items = d.items;
+                else if (Array.isArray(d?.data)) items = d.data;
+                else if (Array.isArray(res.items)) items = res.items;
+                else if (d && typeof d === 'object') {
+                    const firstArray = Object.values(d).find(v => Array.isArray(v));
+                    items = firstArray || [];
+                }
+
+                const rows = items.map(it => {
+                    const p = it.product || {};
+                    const name = p.name || it.name || 'N/A';
+                    const sold = it.sold || it.soldCount || 0;
+                    const revenue = it.revenue || ((p.price || 0) * sold);
+                    return `
+                        <tr>
+                            <td>${name}</td>
+                            <td>${sold}</td>
+                            <td>${formatCurrency(revenue)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const html = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Sản phẩm bán chạy nhất</h3>
+                        </div>
+                        <div class="card-body">
+                            ${items.length > 0 ? `
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tên sản phẩm</th>
+                                            <th>Đã bán</th>
+                                            <th>Doanh thu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${rows}</tbody>
+                                </table>
+                            ` : '<p class="text-muted">Chưa có dữ liệu</p>'}
+                        </div>
+                    </div>
+                `;
+                topProductsContainer.innerHTML = html;
+            } catch (e) {
+                topProductsContainer.innerHTML = '<p class="text-muted">Không thể tải Top sản phẩm</p>';
+            }
+        }
+
+        function computeRange(view, year, month) {
+            if (view === 'month') {
+                const start = new Date(Number(year), 0, 1);
+                const end = new Date(Number(year), 11, 31, 23, 59, 59, 999);
+                return { start: start.toISOString(), end: end.toISOString() };
+            } else {
+                const start = new Date(Number(year), Number(month)-1, 1);
+                const end = new Date(Number(year), Number(month), 0, 23, 59, 59, 999);
+                return { start: start.toISOString(), end: end.toISOString() };
+            }
+        }
+
+        async function renderTopCustomers(view, year, month) {
+            const { start, end } = computeRange(view, year, month);
+            try {
+                const res = await OrdersAPI.getTopCustomers({ limit: 5, status: 'completed', start, end });
+                let list = [];
+                const d = res.data;
+                if (Array.isArray(d)) list = d;
+                else if (Array.isArray(d?.customers)) list = d.customers;
+                else if (Array.isArray(d?.data)) list = d.data;
+                else if (Array.isArray(res.customers)) list = res.customers;
+                else if (d && typeof d === 'object') {
+                    const firstArray = Object.values(d).find(v => Array.isArray(v));
+                    list = firstArray || [];
+                }
+                const rowsHtml = list.map(item => {
+                    const user = item.user || {};
+                    const name = user.name || item.name || 'N/A';
+                    const contact = user.phone || user.email || item.email || 'N/A';
+                    const orderCount = item.orderCount || item.totalOrders || 0;
+                    const totalSpend = item.totalSpend || 0;
+                    const lastOrder = item.lastOrder ? new Date(item.lastOrder).toLocaleDateString('vi-VN') : 'N/A';
+                    return `
+                        <tr>
+                            <td>${name}</td>
+                            <td>${contact}</td>
+                            <td>${orderCount}</td>
+                            <td>${formatCurrency(totalSpend)}</td>
+                            <td>${lastOrder}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                const topCustomersHtml = `
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Top khách hàng</h3>
+                        </div>
+                        <div class="card-body">
+                            ${list.length > 0 ? `
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Khách hàng</th>
+                                            <th>Liên hệ</th>
+                                            <th>Đơn hàng</th>
+                                            <th>Chi tiêu</th>
+                                            <th>Gần nhất</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${rowsHtml}</tbody>
+                                </table>
+                            ` : '<p class="text-muted">Chưa có dữ liệu</p>'}
+                        </div>
+                    </div>
+                `;
+
+                const topCustomersContainer = document.getElementById('topCustomersContainer');
+                if (topCustomersContainer) topCustomersContainer.innerHTML = topCustomersHtml;
+            } catch (e) {
+                const topCustomersContainer = document.getElementById('topCustomersContainer');
+                if (topCustomersContainer) topCustomersContainer.innerHTML = '<p class="text-muted">Không thể tải Top khách hàng</p>';
+            }
+        }
+
+        if (viewSelect && yearSelect && monthSelect) {
+            renderTopCustomers(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value));
+            renderTopProducts(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value));
+            viewSelect.addEventListener('change', () => {
+                renderTopCustomers(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value));
+                renderTopProducts(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value));
+            });
+            yearSelect.addEventListener('change', () => {
+                renderTopCustomers(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value));
+                renderTopProducts(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value));
+            });
+            monthSelect.addEventListener('change', () => {
+                renderTopCustomers(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value));
+                renderTopProducts(viewSelect.value, Number(yearSelect.value), Number(monthSelect.value));
+            });
+        } else {
+            renderTopCustomers('month', new Date().getFullYear(), new Date().getMonth()+1);
+            renderTopProducts('month', new Date().getFullYear(), new Date().getMonth()+1);
+        }
+
+        const kpiEl = document.getElementById('statsKPI');
+        if (kpiEl) {
+            const totalRevenue = deliveredOrders.reduce((s,o)=>s+(o.totalAmount||o.total||0),0);
+            const totalOrders = deliveredOrders.length;
+            const uniqueCustomers = new Set(deliveredOrders.map(o => o.user?._id || o.userId || o.user?.email)).size;
+            const avgOrder = totalOrders ? Math.round(totalRevenue/totalOrders) : 0;
+            kpiEl.innerHTML = `
+                <div class="stat-card stat-info">
+                    <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-info"><h3>${formatCurrency(totalRevenue)}</h3><p>Tổng doanh thu</p></div>
+                </div>
+                <div class="stat-card stat-success">
+                    <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                    <div class="stat-info"><h3>${totalOrders}</h3><p>Đơn hàng đã giao</p></div>
+                </div>
+                <div class="stat-card stat-warning">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-info"><h3>${uniqueCustomers}</h3><p>Khách hàng</p></div>
+                </div>
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon"><i class="fas fa-receipt"></i></div>
+                    <div class="stat-info"><h3>${formatCurrency(avgOrder)}</h3><p>Giá trị TB/đơn</p></div>
+                </div>
+            `;
         }
     } catch (error) {
         console.error('Error loading statistics:', error);
@@ -1055,9 +1373,14 @@ function getStatusText(status) {
         'confirmed': 'Đã xác nhận',
         'shipping': 'Đang giao',
         'delivered': 'Đã giao',
+        'completed': 'Đã hoàn tất',
         'cancelled': 'Đã hủy'
     };
     return statusMap[status] || status;
+}
+
+function isOrderCompleted(status) {
+    return status === 'delivered' || status === 'completed';
 }
 
 // ===== Pagination =====

@@ -530,6 +530,41 @@ body {
     margin-bottom: 30px;
 }
 
+.stats-two-col {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+}
+
+.col-large, .col-medium {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.chart-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.chart-placeholder {
+    min-height: 190px;
+}
+
+.compare-text {
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+@media (max-width: 1024px) {
+    .stats-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
 .stat-card {
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
@@ -611,6 +646,7 @@ body {
     color: var(--text-primary);
     font-size: 14px;
     border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
 }
 
 .data-table td {
@@ -1184,19 +1220,21 @@ select:focus {
 .chart-container {
     display: flex;
     align-items: flex-end;
-    justify-content: space-around;
-    gap: 16px;
-    height: 300px;
-    padding: 20px;
+    justify-content: space-between;
+    gap: 10px;
+    height: 190px;
+    padding: 12px 14px;
     background: var(--bg-primary);
     border-radius: var(--radius-md);
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .chart-bar-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex: 1;
+    flex: 0 0 36px;
     height: 100%;
 }
 
@@ -1206,11 +1244,11 @@ select:focus {
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     position: relative;
     transition: var(--transition);
-    min-height: 20px;
+    min-height: 18px;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding-top: 8px;
+    padding-top: 6px;
 }
 
 .chart-bar:hover {
@@ -1219,15 +1257,15 @@ select:focus {
 }
 
 .chart-value {
-    font-size: 11px;
+    font-size: 10px;
     color: white;
     font-weight: 600;
     white-space: nowrap;
 }
 
 .chart-label {
-    margin-top: 8px;
-    font-size: 12px;
+    margin-top: 6px;
+    font-size: 11px;
     color: var(--text-secondary);
     text-align: center;
 }
